@@ -1,7 +1,19 @@
+import { useEffect, useState } from 'react';
+
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
 import { AlurakutMenu, OrkutNostalgicIconSet } from '../src/lib/AlurakutCommons';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
+
+
+async function listarSeguidores(usuario) {
+  const data = await fetch(`https://api.github.com/users/${usuario}/followers`);
+  if (!data.ok) return [];
+  const json = await data.json();
+  const seguidores = json.map(({ login }) => login)
+  return seguidores;
+}
+
 
 function ProfileSidebar(propriedades) {
   console.log(propriedades);
@@ -13,15 +25,13 @@ function ProfileSidebar(propriedades) {
 }
 
 export default function Home() {
-  const usuarioAleatorio = 'douglasgusson';
-  const pessoasFavoritas = [
-    'juunegreiros',
-    'omariosouto',
-    'peas',
-    'rafaballerini',
-    'marcobrunodev',
-    'felipefialho',
-  ]
+
+  const meuUsuario = 'douglasgusson';
+  const [seguidores, setSeguidores] = useState([])
+
+  useEffect(async () => {
+    setSeguidores(await listarSeguidores(meuUsuario));
+  }, [])
 
   return (
     <>
@@ -29,7 +39,7 @@ export default function Home() {
       <MainGrid>
         {/* <Box style="grid-area: profileArea;"> */}
         <div className="profileArea" style={{ gridArea: 'profileArea' }}>
-          <ProfileSidebar githubUser={usuarioAleatorio} />
+          <ProfileSidebar githubUser={meuUsuario} />
         </div>
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea' }}>
           <Box>
@@ -43,11 +53,11 @@ export default function Home() {
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
-              Pessoas da comunidade ({pessoasFavoritas.length})
+              Meus seguidores ({seguidores.length})
             </h2>
 
             <ul>
-              {pessoasFavoritas.map((itemAtual) => {
+              {seguidores.map((itemAtual) => {
                 return (
                   <li key={itemAtual}>
                     <a href={`/users/${itemAtual}`}>
