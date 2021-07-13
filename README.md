@@ -32,3 +32,4 @@ npm run dev
 
 ## Etapas
  - Aula 1: Components com React, Styled Components e NextJS
+ - Aula 2: React, State e o primeiro Formulário

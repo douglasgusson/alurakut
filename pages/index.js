@@ -33,6 +33,20 @@ export default function Home() {
     setSeguidores(await listarSeguidores(meuUsuario));
   }, [])
 
+  const [comunidades, setComunidades] = useState([
+    {
+      id: '42',
+      title: 'Alura Stars',
+      image: 'img/comunidade-alura-stars.png'
+    },
+    {
+      id: '43',
+      title: 'Eu odeio acordar cedo',
+      image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
+    }
+  ]);
+
+
   return (
     <>
       <AlurakutMenu githubUser={meuUsuario} />
@@ -49,11 +63,64 @@ export default function Home() {
 
             <OrkutNostalgicIconSet confiavel={3} legal={3} sexy={2} />
           </Box>
+
+          <Box>
+            <h2 className="subTitle">O que você deseja fazer?</h2>
+            <form onSubmit={function handleCriaComunidade(e) {
+              e.preventDefault();
+              const dadosDoForm = new FormData(e.target);
+
+              const comunidade = {
+                id: Date.now(),
+                title: dadosDoForm.get('title'),
+                image: dadosDoForm.get('image') || `https://picsum.photos/200?${Date.now()}`,
+              }
+              const comunidadesAtualizadas = [...comunidades, comunidade];
+              setComunidades(comunidadesAtualizadas)
+            }}>
+              <div>
+                <input
+                  placeholder="Qual vai ser o nome da sua comunidade?"
+                  name="title"
+                  aria-label="Qual vai ser o nome da sua comunidade?"
+                  type="text"
+                />
+              </div>
+              <div>
+                <input
+                  placeholder="Coloque uma URL para usarmos de capa"
+                  name="image"
+                  aria-label="Coloque uma URL para usarmos de capa"
+                />
+              </div>
+
+              <button>
+                Criar comunidade
+              </button>
+            </form>
+          </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
-              Meus seguidores ({seguidores.length})
+              Comunidades ({comunidades.length})
+            </h2>
+            <ul>
+              {comunidades.slice(0, 6).map((itemAtual) => {
+                return (
+                  <li key={itemAtual.id}>
+                    <a href={`/users/${itemAtual.title}`}>
+                      <img src={itemAtual.image} />
+                      <span>{itemAtual.title}</span>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </ProfileRelationsBoxWrapper>
+          <ProfileRelationsBoxWrapper>
+            <h2 className="smallTitle">
+              Seguidores ({seguidores.length})
             </h2>
 
             <ul>
