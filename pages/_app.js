@@ -18,6 +18,13 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
     min-height: 100vh;
     flex-direction: column;
+    background-color: #efefff;
+    opacity: 1;
+    background: 
+      linear-gradient(135deg, #feeaff55 25%, transparent 25%) -10px 0/ 20px 20px, 
+      linear-gradient(225deg, #feeaff 25%, transparent 25%) -10px 0/ 20px 20px, 
+      linear-gradient(315deg, #feeaff55 25%, transparent 25%) 0px 0/ 20px 20px, 
+      linear-gradient(45deg, #feeaff 25%, #ffffff 25%) 0px 0/ 20px 20px;
   }
 
   img {
