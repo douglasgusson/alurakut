@@ -132,7 +132,7 @@ export default function Home() {
             </h2>
 
             <ul>
-              {seguidores.map((itemAtual) => {
+              {seguidores.slice(0, 6).map((itemAtual) => {
                 return (
                   <li key={itemAtual}>
                     <a href={`/users/${itemAtual}`}>
