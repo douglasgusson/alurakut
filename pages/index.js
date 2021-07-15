@@ -77,7 +77,9 @@ function ProfileRelationsBox({ items, title, limit, total }) {
 
 export default function Home() {
 
-  const githubUsername = 'douglasgusson';
+  const githubUsername = process.env.NEXT_PUBLIC_GITHUB_USERNAME;
+  const itemsLimit = process.env.NEXT_PUBLIC_ITEMS_LIMIT;
+
   const [perfil, setPerfil] = useState({});
   const [seguidores, setSeguidores] = useState([]);
   const [seguidos, setSeguidos] = useState([]);
@@ -154,9 +156,9 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBox title="Comunidades" items={comunidades} limit={6} total={comunidades.length} />
-          <ProfileRelationsBox title="Pessoas seguidoras" items={seguidores} limit={6} total={perfil.followers} />
-          <ProfileRelationsBox title="Pessoas seguidas" items={seguidos} limit={6} total={perfil.following} />
+          <ProfileRelationsBox title="Comunidades" items={comunidades} limit={itemsLimit} total={comunidades.length} />
+          <ProfileRelationsBox title="Pessoas seguidoras" items={seguidores} limit={itemsLimit} total={perfil.followers} />
+          <ProfileRelationsBox title="Pessoas seguidas" items={seguidos} limit={itemsLimit} total={perfil.following} />
         </div>
       </MainGrid>
     </>
