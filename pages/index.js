@@ -37,6 +37,35 @@ async function listarSeguidos(username) {
   return seguidores;
 }
 
+async function listarComunidades() {
+  // API GraphQL
+  const response = await fetch('https://graphql.datocms.com/', {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.NEXT_PUBLIC_TOKEN_CMS_READ_ONLY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      "query": `query {
+        allComunidades {
+          id
+          nome
+          imagemUrl
+        }
+      }` })
+  });
+
+  if (!response.ok) return [];
+
+  const { data } = await response.json();
+  const { allComunidades } = data;
+
+  const comunidades = allComunidades.map(({ id, nome, imagemUrl }) => ({ id: id, title: nome, image: imagemUrl }));
+
+  return comunidades;
+}
+
 function ProfileSidebar({ githubUser }) {
   return (
     <Box as="aside">
@@ -62,7 +91,7 @@ function ProfileRelationsBox({ items, title, limit, total }) {
       <ul>
         {items.slice(0, limit).map((itemAtual) => {
           return (
-            <li key={itemAtual}>
+            <li key={itemAtual.id}>
               <a href={`https://github.com/${itemAtual.title}`}>
                 <img src={itemAtual.image} />
                 <span>{itemAtual.title}</span>
@@ -77,29 +106,20 @@ function ProfileRelationsBox({ items, title, limit, total }) {
 
 export default function Home() {
 
-  const githubUsername = 'douglasgusson';
+  const githubUsername = process.env.NEXT_PUBLIC_GITHUB_USERNAME;
+  const itemsLimit = process.env.NEXT_PUBLIC_ITEMS_LIMIT;
+
   const [perfil, setPerfil] = useState({});
   const [seguidores, setSeguidores] = useState([]);
   const [seguidos, setSeguidos] = useState([]);
+  const [comunidades, setComunidades] = useState([]);
 
   useEffect(async () => {
     setPerfil(await buscarPerfil(githubUsername));
     setSeguidores(await listarSeguidores(githubUsername));
     setSeguidos(await listarSeguidos(githubUsername));
+    setComunidades(await listarComunidades());
   }, [])
-
-  const [comunidades, setComunidades] = useState([
-    {
-      id: '42',
-      title: 'Alura Stars',
-      image: 'img/comunidade-alura-stars.png'
-    },
-    {
-      id: '43',
-      title: 'Eu odeio acordar cedo',
-      image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-    }
-  ]);
 
   return (
     <>
@@ -124,12 +144,21 @@ export default function Home() {
               const dadosDoForm = new FormData(e.target);
 
               const comunidade = {
-                id: Date.now(),
-                title: dadosDoForm.get('title'),
-                image: dadosDoForm.get('image') || `https://picsum.photos/200?${Date.now()}`,
+                nome: dadosDoForm.get('title'),
+                imagemUrl: dadosDoForm.get('image')
               }
-              const comunidadesAtualizadas = [...comunidades, comunidade];
-              setComunidades(comunidadesAtualizadas)
+
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade)
+              }).then(async (response) => {
+                const dados = await response.json();
+                console.log(dados);
+              });
+
             }}>
               <div>
                 <input
@@ -154,9 +183,9 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBox title="Comunidades" items={comunidades} limit={6} total={comunidades.length} />
-          <ProfileRelationsBox title="Pessoas seguidoras" items={seguidores} limit={6} total={perfil.followers} />
-          <ProfileRelationsBox title="Pessoas seguidas" items={seguidos} limit={6} total={perfil.following} />
+          <ProfileRelationsBox title="Comunidades" items={comunidades} limit={itemsLimit} total={comunidades.length} />
+          <ProfileRelationsBox title="Pessoas seguidoras" items={seguidores} limit={itemsLimit} total={perfil.followers} />
+          <ProfileRelationsBox title="Pessoas seguidas" items={seguidos} limit={itemsLimit} total={perfil.following} />
         </div>
       </MainGrid>
     </>
