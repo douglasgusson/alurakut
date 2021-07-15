@@ -6,24 +6,45 @@ import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet 
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
 
 
-async function listarSeguidores(usuario) {
-  const data = await fetch(`https://api.github.com/users/${usuario}/followers`);
+async function buscarPerfil(usuario) {
+  const data = await fetch(`https://api.github.com/users/${usuario}`);
+  if (!data.ok) return {};
+  const json = await data.json();
+  const { id, login, name, avatar_url, followers, following } = json;
+  return {
+    id: id,
+    name: name,
+    title: login,
+    image: avatar_url,
+    followers: followers,
+    following: following
+  }
+}
+
+async function listarSeguidores(username) {
+  const data = await fetch(`https://api.github.com/users/${username}/followers`);
   if (!data.ok) return [];
   const json = await data.json();
-  const seguidores = json.map(({ login }) => login)
+  const seguidores = json.map(({ id, login, avatar_url }) => ({ id: id, title: login, image: avatar_url }))
   return seguidores;
 }
 
+async function listarSeguidos(username) {
+  const data = await fetch(`https://api.github.com/users/${username}/following`);
+  if (!data.ok) return [];
+  const json = await data.json();
+  const seguidores = json.map(({ id, login, avatar_url }) => ({ id: id, title: login, image: avatar_url }))
+  return seguidores;
+}
 
-function ProfileSidebar(propriedades) {
-  console.log(propriedades);
+function ProfileSidebar({ githubUser }) {
   return (
     <Box as="aside">
-      <img src={`https://github.com/${propriedades.githubUser}.png`} style={{ borderRadius: '8px' }} />
+      <img src={`https://github.com/${githubUser}.png`} style={{ borderRadius: '8px' }} />
       <hr />
       <p>
-        <a className="boxLink" href={`https://github.com/${propriedades.githubUser}`}>
-          @{propriedades.githubUser}
+        <a className="boxLink" href={`https://github.com/${githubUser}`}>
+          @{githubUser}
         </a>
       </p>
       <hr />
@@ -32,13 +53,39 @@ function ProfileSidebar(propriedades) {
   )
 }
 
+function ProfileRelationsBox({ items, title, limit, total }) {
+  return (
+    <ProfileRelationsBoxWrapper>
+      <h2 className="smallTitle">
+        {title} ({total})
+      </h2>
+      <ul>
+        {items.slice(0, limit).map((itemAtual) => {
+          return (
+            <li key={itemAtual}>
+              <a href={`https://github.com/${itemAtual.title}`}>
+                <img src={itemAtual.image} />
+                <span>{itemAtual.title}</span>
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+    </ProfileRelationsBoxWrapper>
+  )
+}
+
 export default function Home() {
 
-  const meuUsuario = 'douglasgusson';
-  const [seguidores, setSeguidores] = useState([])
+  const githubUsername = 'douglasgusson';
+  const [perfil, setPerfil] = useState({});
+  const [seguidores, setSeguidores] = useState([]);
+  const [seguidos, setSeguidos] = useState([]);
 
   useEffect(async () => {
-    setSeguidores(await listarSeguidores(meuUsuario));
+    setPerfil(await buscarPerfil(githubUsername));
+    setSeguidores(await listarSeguidores(githubUsername));
+    setSeguidos(await listarSeguidos(githubUsername));
   }, [])
 
   const [comunidades, setComunidades] = useState([
@@ -54,19 +101,17 @@ export default function Home() {
     }
   ]);
 
-
   return (
     <>
-      <AlurakutMenu githubUser={meuUsuario} />
+      <AlurakutMenu githubUser={perfil.title} />
       <MainGrid>
-        {/* <Box style="grid-area: profileArea;"> */}
         <div className="profileArea" style={{ gridArea: 'profileArea' }}>
-          <ProfileSidebar githubUser={meuUsuario} />
+          <ProfileSidebar githubUser={perfil.title} />
         </div>
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea' }}>
           <Box>
             <h1 className="title">
-              Bem vindo, @{meuUsuario}
+              Bem vindo, {perfil.name}
             </h1>
 
             <OrkutNostalgicIconSet confiavel={3} legal={3} sexy={2} />
@@ -109,41 +154,9 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Comunidades ({comunidades.length})
-            </h2>
-            <ul>
-              {comunidades.slice(0, 6).map((itemAtual) => {
-                return (
-                  <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`}>
-                      <img src={itemAtual.image} />
-                      <span>{itemAtual.title}</span>
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </ProfileRelationsBoxWrapper>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Seguidores ({seguidores.length})
-            </h2>
-
-            <ul>
-              {seguidores.slice(0, 6).map((itemAtual) => {
-                return (
-                  <li key={itemAtual}>
-                    <a href={`/users/${itemAtual}`}>
-                      <img src={`https://github.com/${itemAtual}.png`} />
-                      <span>{itemAtual}</span>
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </ProfileRelationsBoxWrapper>
+          <ProfileRelationsBox title="Comunidades" items={comunidades} limit={6} total={comunidades.length} />
+          <ProfileRelationsBox title="Pessoas seguidoras" items={seguidores} limit={6} total={perfil.followers} />
+          <ProfileRelationsBox title="Pessoas seguidas" items={seguidos} limit={6} total={perfil.following} />
         </div>
       </MainGrid>
     </>
