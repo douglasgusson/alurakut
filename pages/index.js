@@ -144,12 +144,21 @@ export default function Home() {
               const dadosDoForm = new FormData(e.target);
 
               const comunidade = {
-                id: Date.now(),
-                title: dadosDoForm.get('title'),
-                image: dadosDoForm.get('image') || `https://picsum.photos/200?${Date.now()}`,
+                nome: dadosDoForm.get('title'),
+                imagemUrl: dadosDoForm.get('image')
               }
-              const comunidadesAtualizadas = [...comunidades, comunidade];
-              setComunidades(comunidadesAtualizadas)
+
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade)
+              }).then(async (response) => {
+                const dados = await response.json();
+                console.log(dados);
+              });
+
             }}>
               <div>
                 <input
