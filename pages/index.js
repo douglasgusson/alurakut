@@ -37,6 +37,35 @@ async function listarSeguidos(username) {
   return seguidores;
 }
 
+async function listarComunidades() {
+  // API GraphQL
+  const response = await fetch('https://graphql.datocms.com/', {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.NEXT_PUBLIC_TOKEN_CMS_READ_ONLY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      "query": `query {
+        allComunidades {
+          id
+          nome
+          imagemUrl
+        }
+      }` })
+  });
+
+  if (!response.ok) return [];
+
+  const { data } = await response.json();
+  const { allComunidades } = data;
+
+  const comunidades = allComunidades.map(({ id, nome, imagemUrl }) => ({ id: id, title: nome, image: imagemUrl }));
+
+  return comunidades;
+}
+
 function ProfileSidebar({ githubUser }) {
   return (
     <Box as="aside">
@@ -62,7 +91,7 @@ function ProfileRelationsBox({ items, title, limit, total }) {
       <ul>
         {items.slice(0, limit).map((itemAtual) => {
           return (
-            <li key={itemAtual}>
+            <li key={itemAtual.id}>
               <a href={`https://github.com/${itemAtual.title}`}>
                 <img src={itemAtual.image} />
                 <span>{itemAtual.title}</span>
@@ -83,25 +112,14 @@ export default function Home() {
   const [perfil, setPerfil] = useState({});
   const [seguidores, setSeguidores] = useState([]);
   const [seguidos, setSeguidos] = useState([]);
+  const [comunidades, setComunidades] = useState([]);
 
   useEffect(async () => {
     setPerfil(await buscarPerfil(githubUsername));
     setSeguidores(await listarSeguidores(githubUsername));
     setSeguidos(await listarSeguidos(githubUsername));
+    setComunidades(await listarComunidades());
   }, [])
-
-  const [comunidades, setComunidades] = useState([
-    {
-      id: '42',
-      title: 'Alura Stars',
-      image: 'img/comunidade-alura-stars.png'
-    },
-    {
-      id: '43',
-      title: 'Eu odeio acordar cedo',
-      image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-    }
-  ]);
 
   return (
     <>
